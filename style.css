@@ -64,8 +64,8 @@ div{
   width: auto;
   height: auto;
   position: absolute;
-  top: 195px;
-  left: 65px;
+  top: 0;
+  left: 0;
   z-index: 2;
   border: 1px solid black;
 

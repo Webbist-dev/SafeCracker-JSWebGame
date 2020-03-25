@@ -8,11 +8,9 @@ var smallSafeOpen = new Image();
 var smallSafeBG = new Image();
 
 var safeDialSupport = new Image();
-var safeDialsImage = new Image();
-
 var safeDialClear = new Image();
-var safeDialLose = new Image();
-var safeDialWin = new Image();
+var safeDialRed= new Image();
+var safeDialGreen = new Image();
 
 
 bigBG.src = "res/background_safe_minigame.png";
@@ -21,7 +19,6 @@ smallSafeOpen.src = "res/safe_open_minigame.png";
 smallSafeBG.src = "res/screen_safe_background.png";
 
 safeDialSupport.src = "res/support_safe_dial_minigame.png";
-safeDialsImage.src = "res/safe_dial_minigame.png";
 
 bigBG.onload = () => {
 	//Resize canvas to fit background image
@@ -42,11 +39,17 @@ smallSafeOpen.onload = () => {
 
 safeDialSupport.onload = () => {
 	setUpDialSupport();
+	//Load these after the support image
+	safeDialClear.src = "res/safe_dial_clear.png";
+	safeDialRed.src = "res/safe_dial_red.png";
+	safeDialGreen.src = "res/safe_dial_green.png";
+
+		safeDialClear.onload = () => {
+		setUpDial(0);
+	}
 }
-safeDialsImage.onload = () => {
-	setUpDial("clear");
-}
-//Circle object
+
+//Small safe object
 function SmallSafeObj(image, safeDoor, safeInternal,  prize, x, y, revealed) {
 	this.image = image;
 	this.insideImg = safeDoor;
@@ -100,46 +103,87 @@ function writeToTextSafe(value, xPos, yPos){
 function openSafe(safeNumber){
 	smallSafeArray[safeNumber-1].revealInside();
 }
+//Move dials canvas to dials location
 
 function setUpDialSupport(){
 	ctx.drawImage(safeDialSupport, 580, 222);
 }
-var asda = new Image();
 var safeDialX = 590;
 var safeDialY = 260;
 
 var safeDialSize = 275;
 
+//Small safe object
+function DialObj(image, x, y, active) {
+	this.image = image;
+
+	this.x = x;
+	this.y = y;
+	
+	this.active = active;
+
+	this.draw = function(){
+  		ctx.drawImage(image, x, y);
+	}
+
+	this.revealInside = function(){
+  		ctx.drawImage(safeDoor, x - 40, y - 26);
+  		ctx.drawImage(safeInternal, x + 25, y + 17, 112, 103);
+
+	}
+}
+
 function setUpDial(dialIndex){
 
 	var offset = 0;
+
 	switch (dialIndex) {
-		case "clear":
-			offset = 0;
+		case 0:
+  			ctx.drawImage(safeDialClear, 592, 258);
 		break;
-		case "lose":
-			offset = safeDialSize * 1;
+		case 1:
+  			ctx.drawImage(safeDialRed, 592, 258);
 		break;
-		case "win":
-			offset = safeDialSize * 2;
+		case 2:
+  			ctx.drawImage(safeDialGreen, 592, 258);
 		break;
 	}
-	
-	ctx.drawImage(safeDialsImage,0 + offset, 0, safeDialSize,safeDialSize, safeDialX, safeDialY, safeDialSize, safeDialSize);
+
+
+	//ctx.drawImage(safeDialsImage,0 + offset, 0, safeDialSize,safeDialSize, safeDialX, safeDialY, safeDialSize, safeDialSize);
+
+	//ctx.drawImage(clearDial,0 + offset, 0);
+
 }
-	var spinTime = 10;
 
-function rotateDial(){
+var spinTime = 100;
+var spinSpeed = 10;
 
-	drawRotatedImage(safeDialsImage, safeDialX, safeDialY, spinTime);
 
-	spinTime += 10;
+function rotateDial(amount){
+
+
+	if (amount !== null) {
+		spinTime = amount;
+	} else {
+		spinTime = 100;
+	}
+
+	spinAnim();
+
+}
+
+function spinAnim(){
+		drawRotatedImage(safeDialClear, 592 + (safeDialClear.width/2), 258 + (safeDialClear.height/2), spinTime);
+
+	spinTime -=1;
+	//spinSpeed -=1;
+
+    if (spinTime > 0) {
+		requestAnimationFrame(spinAnim);
+    }
 
 	console.log("animate frame: " + spinTime);
-
-	requestAnimationFrame(rotateDial);
-
-
 }
 
 var TO_RADIANS = Math.PI/180; 
@@ -158,6 +202,7 @@ function drawRotatedImage(image, x, y, angle) {
  
 	// draw it up and to the left by half the width
 	// and height of the image 
+	// ctx.drawImage(image, -(image.width/2), -(image.height/2));
 	ctx.drawImage(image, -(image.width/2), -(image.height/2));
  
 	// and restore the co-ords to how they were when we began
