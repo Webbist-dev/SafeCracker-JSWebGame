@@ -8,6 +8,11 @@ var smallSafeOpen = new Image();
 var smallSafeBG = new Image();
 
 var safeDialSupport = new Image();
+var safeDialsImage = new Image();
+
+var safeDialClear = new Image();
+var safeDialLose = new Image();
+var safeDialWin = new Image();
 
 
 bigBG.src = "res/background_safe_minigame.png";
@@ -16,6 +21,7 @@ smallSafeOpen.src = "res/safe_open_minigame.png";
 smallSafeBG.src = "res/screen_safe_background.png";
 
 safeDialSupport.src = "res/support_safe_dial_minigame.png";
+safeDialsImage.src = "res/safe_dial_minigame.png";
 
 bigBG.onload = () => {
 	//Resize canvas to fit background image
@@ -35,7 +41,10 @@ smallSafeOpen.onload = () => {
 }
 
 safeDialSupport.onload = () => {
-	setUpDial();
+	setUpDialSupport();
+}
+safeDialsImage.onload = () => {
+	setUpDial("clear");
 }
 //Circle object
 function SmallSafeObj(image, safeDoor, safeInternal,  prize, x, y, revealed) {
@@ -92,6 +101,65 @@ function openSafe(safeNumber){
 	smallSafeArray[safeNumber-1].revealInside();
 }
 
-function setUpDial(){
+function setUpDialSupport(){
 	ctx.drawImage(safeDialSupport, 580, 222);
+}
+var asda = new Image();
+var safeDialX = 590;
+var safeDialY = 260;
+
+var safeDialSize = 275;
+
+function setUpDial(dialIndex){
+
+	var offset = 0;
+	switch (dialIndex) {
+		case "clear":
+			offset = 0;
+		break;
+		case "lose":
+			offset = safeDialSize * 1;
+		break;
+		case "win":
+			offset = safeDialSize * 2;
+		break;
+	}
+	
+	ctx.drawImage(safeDialsImage,0 + offset, 0, safeDialSize,safeDialSize, safeDialX, safeDialY, safeDialSize, safeDialSize);
+}
+	var spinTime = 10;
+
+function rotateDial(){
+
+	drawRotatedImage(safeDialsImage, safeDialX, safeDialY, spinTime);
+
+	spinTime += 10;
+
+	console.log("animate frame: " + spinTime);
+
+	requestAnimationFrame(rotateDial);
+
+
+}
+
+var TO_RADIANS = Math.PI/180; 
+function drawRotatedImage(image, x, y, angle) { 
+ 
+	// save the current co-ordinate system 
+	// before we screw with it
+	ctx.save(); 
+ 
+	// move to the middle of where we want to draw our image
+	ctx.translate(x, y);
+ 
+	// rotate around that point, converting our 
+	// angle from degrees to radians 
+	ctx.rotate(angle * TO_RADIANS);
+ 
+	// draw it up and to the left by half the width
+	// and height of the image 
+	ctx.drawImage(image, -(image.width/2), -(image.height/2));
+ 
+	// and restore the co-ords to how they were when we began
+	ctx.restore(); 
 }
