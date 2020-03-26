@@ -12,6 +12,8 @@ var safeDialClear = new Image();
 var safeDialRed= new Image();
 var safeDialGreen = new Image();
 
+var spinButton = new Image();
+
 
 bigBG.src = "res/background_safe_minigame.png";
 smallSafe.src = "res/safe_minigame.png";
@@ -19,6 +21,10 @@ smallSafeOpen.src = "res/safe_open_minigame.png";
 smallSafeBG.src = "res/screen_safe_background.png";
 
 safeDialSupport.src = "res/support_safe_dial_minigame.png";
+safeDialClear.src = "res/safe_dial_clear.png";
+safeDialRed.src = "res/safe_dial_red.png";
+safeDialGreen.src = "res/safe_dial_green.png";
+spinButton.src = "res/text_spin_safe_dial_minigame.png";
 
 bigBG.onload = () => {
 	//Resize canvas to fit background image
@@ -36,16 +42,19 @@ smallSafeOpen.onload = () => {
 	//OpenSafeDoor(1);
 	//Doesn't need to be used ASAP after loading
 }
+var spinBtnObj = undefined;
 
 safeDialSupport.onload = () => {
 	setUpDialSupport();
 	//Load these after the support image
-	safeDialClear.src = "res/safe_dial_clear.png";
-	safeDialRed.src = "res/safe_dial_red.png";
-	safeDialGreen.src = "res/safe_dial_green.png";
 
-		safeDialClear.onload = () => {
-		setUpDial(0);
+
+	safeDialClear.onload = () => {
+	setUpDial(0);
+
+	}
+	spinButton.onload = () => {
+		setUpSpinButton();
 	}
 }
 
@@ -71,7 +80,22 @@ function SmallSafeObj(image, safeDoor, safeInternal,  prize, x, y, revealed) {
 
 	}
 }
+function SpinButtonObj(image, x, y, width, height, hide) {
+	this.image = image;
 
+	this.x = x;
+	this.y = y;
+	
+	this.width = width;
+	this.height = height;
+	this.hide = hide;
+
+	this.draw = function(){
+		if (!this.hide) {
+	  		ctx.drawImage(image, x, y);
+		}
+	}
+}
 var smallSafeArray = [];
 
 function SetUpSafeDoors(){
@@ -148,12 +172,21 @@ function setUpDial(dialIndex){
   			ctx.drawImage(safeDialGreen, 592, 258);
 		break;
 	}
+}
 
+var rightSpin = undefined;
+var leftSpin = undefined;
 
-	//ctx.drawImage(safeDialsImage,0 + offset, 0, safeDialSize,safeDialSize, safeDialX, safeDialY, safeDialSize, safeDialSize);
+function setUpSpinButton(){
+	spinBtnObj = new SpinButtonObj(spinButton, 692, 358, spinButton.width, spinButton.height, false)
+  	spinBtnObj.draw();
+	console.log(spinBtnObj.x - canvas.width);
+	console.log(spinBtnObj.y - canvas.height);
 
-	//ctx.drawImage(clearDial,0 + offset, 0);
-
+	rightSpin = new SpinButtonObj(spinButton, 592, 508, 100, 100, false)
+  	rightSpin.draw();
+	leftSpin = new SpinButtonObj(spinButton, 792, 508, 100, 100, false)
+  	leftSpin.draw();
 }
 
 var spinTarget = 2;
@@ -211,3 +244,68 @@ function drawRotatedImage(image, x, y, angle) {
 	// and restore the co-ords to how they were when we began
 	ctx.restore(); 
 }
+
+var clickLoc = {
+	x: undefined,
+	y: undefined
+}
+var scale = {
+	x: undefined,
+	y: undefined
+}
+window.addEventListener('mousedown', 
+	function(event) {//anonymous fucntion with even argument
+		//console.log(event);//See the values in the event
+        var rect = canvas.getBoundingClientRect();
+        scale.x = canvas.width / rect.width;    // relationship bitmap vs. element for X
+        scale.y = canvas.height / rect.height;  // relationship bitmap vs. element for Y
+
+
+	    clickLoc.x = (event.clientX - rect.left) * scale.x;   // scale mouse coordinates after they have
+	    clickLoc.y = (event.clientY - rect.top) * scale.y;    // been adjusted to be relative to element
+		
+		if (clickLoc.x > spinBtnObj.x && clickLoc.x < spinBtnObj.x + spinButton.width) {
+
+			if (clickLoc.y > spinBtnObj.y && clickLoc.y < spinBtnObj.y + spinButton.height){
+				console.log('spinBtnObj');
+			}
+		}
+
+		if (clickLoc.x > rightSpin.x && clickLoc.x < rightSpin.x + rightSpin.width) {
+
+			if (clickLoc.y > rightSpin.y  && clickLoc.y < rightSpin.y + rightSpin.height ) {
+				//console.log(spinBtnObj.y);
+				console.log('spinRight');
+			}
+		}
+
+		if (clickLoc.x > leftSpin.x && clickLoc.x < leftSpin.x + leftSpin.width) {
+
+			if (clickLoc.y > leftSpin.y  && clickLoc.y < leftSpin.y + leftSpin.height ) {
+				//console.log(spinBtnObj.y);
+				console.log('spinRight');
+			}
+		}
+	});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
