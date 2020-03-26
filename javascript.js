@@ -156,37 +156,40 @@ function setUpDial(dialIndex){
 
 }
 
-var spinTime = 100;
-var spinSpeed = 10;
+var spinTarget = 2;
+var angle = 0;
+var spinSpeed = 50;
 
 
-function rotateDial(amount){
+function rotateDial(amount, target){
 
+	angle = amount;
 
-	if (amount !== null) {
-		spinTime = amount;
-	} else {
-		spinTime = 100;
-	}
+	spinTarget = target;
+
+	spinLength = 10;
 
 	spinAnim();
 
 }
 
 function spinAnim(){
-		drawRotatedImage(safeDialClear, 592 + (safeDialClear.width/2), 258 + (safeDialClear.height/2), spinTime);
+		drawRotatedImage(safeDialClear, 592 + (safeDialClear.width/2), 
+			258 + (safeDialClear.height/2), angle);
 
-	spinTime -=1;
-	//spinSpeed -=1;
+    spinLength -=0.1;
 
-    if (spinTime > 0) {
-		requestAnimationFrame(spinAnim);
+    if (spinLength > 0) {
+    	requestAnimationFrame(spinAnim);
     }
 
-	console.log("animate frame: " + spinTime);
+	//console.log("animate angle: " + angle);
+	console.log("spinLength: " + spinLength);
 }
 
-var TO_RADIANS = Math.PI/180; 
+var TO_RADIANS = Math.PI / 180; 
+console.log("animate TO_RADIANS: " + TO_RADIANS);
+
 function drawRotatedImage(image, x, y, angle) { 
  
 	// save the current co-ordinate system 
@@ -198,8 +201,17 @@ function drawRotatedImage(image, x, y, angle) {
  
 	// rotate around that point, converting our 
 	// angle from degrees to radians 
-	ctx.rotate(angle * TO_RADIANS);
- 
+	//ctx.rotate(angle * TO_RADIANS);
+	var a = (TO_RADIANS * angle);
+ 	console.log("a: " + a);
+
+ 	spinTarget += (TO_RADIANS * angle) / 100;
+ 	console.log("spinTarget: " + spinTarget);
+
+
+ 	ctx.rotate(spinTarget); 
+
+
 	// draw it up and to the left by half the width
 	// and height of the image 
 	// ctx.drawImage(image, -(image.width/2), -(image.height/2));
