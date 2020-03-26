@@ -163,7 +163,7 @@ var spinSpeed = 50;
 
 function rotateDial(amount, target){
 
-	angle = amount;
+	angle = 1;
 
 	spinTarget = target;
 
@@ -177,14 +177,13 @@ function spinAnim(){
 		drawRotatedImage(safeDialClear, 592 + (safeDialClear.width/2), 
 			258 + (safeDialClear.height/2), angle);
 
-    spinLength -=0.1;
+    angle += 1;
 
-    if (spinLength > 0) {
-    	requestAnimationFrame(spinAnim);
+    if (angle !== spinTarget) {
+     	requestAnimationFrame(spinAnim);
     }
 
-	//console.log("animate angle: " + angle);
-	console.log("spinLength: " + spinLength);
+    console.log("angle: " + angle);
 }
 
 var TO_RADIANS = Math.PI / 180; 
@@ -201,15 +200,7 @@ function drawRotatedImage(image, x, y, angle) {
  
 	// rotate around that point, converting our 
 	// angle from degrees to radians 
-	//ctx.rotate(angle * TO_RADIANS);
-	var a = (TO_RADIANS * angle);
- 	console.log("a: " + a);
-
- 	spinTarget += (TO_RADIANS * angle) / 100;
- 	console.log("spinTarget: " + spinTarget);
-
-
- 	ctx.rotate(spinTarget); 
+	ctx.rotate((Math.PI / 180) * angle);
 
 
 	// draw it up and to the left by half the width
