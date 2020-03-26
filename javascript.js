@@ -189,18 +189,16 @@ function setUpSpinButton(){
   	leftSpin.draw();
 }
 
-var spinTarget = 2;
-var angle = 0;
-var spinSpeed = 50;
+var currentAngle = 1;
+var oldAngle = 0;
 
+var targetAngle = -100;
 
-function rotateDial(amount, target){
+function rotateDial(target){
 
-	angle = 1;
+	oldAngle = targetAngle;
 
-	spinTarget = target;
-
-	spinLength = 10;
+	targetAngle = -target;
 
 	spinAnim();
 
@@ -208,15 +206,20 @@ function rotateDial(amount, target){
 
 function spinAnim(){
 		drawRotatedImage(safeDialClear, 592 + (safeDialClear.width/2), 
-			258 + (safeDialClear.height/2), angle);
+			258 + (safeDialClear.height/2), currentAngle);
 
-    angle += 1;
+	if (currentAngle < targetAngle) {
+    	currentAngle += 1;
+	} else if (currentAngle > targetAngle) {
+    	currentAngle -= 1;
+	}
 
-    if (angle !== spinTarget) {
+    if (currentAngle !== targetAngle) {
      	requestAnimationFrame(spinAnim);
     }
 
-    console.log("angle: " + angle);
+    console.log("currentAngle: " + currentAngle);
+    console.log("targetAngle: " + targetAngle);
 }
 
 var TO_RADIANS = Math.PI / 180; 
@@ -283,7 +286,7 @@ window.addEventListener('mousedown',
 
 			if (clickLoc.y > leftSpin.y  && clickLoc.y < leftSpin.y + leftSpin.height ) {
 				//console.log(spinBtnObj.y);
-				console.log('spinRight');
+				console.log('spinLeft');
 			}
 		}
 	});
