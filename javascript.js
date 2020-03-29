@@ -180,8 +180,6 @@ var leftSpin = undefined;
 function setUpSpinButton(){
 	spinBtnObj = new SpinButtonObj(spinButton, 692, 358, spinButton.width, spinButton.height, false)
   	spinBtnObj.draw();
-	console.log(spinBtnObj.x - canvas.width);
-	console.log(spinBtnObj.y - canvas.height);
 
 	rightSpin = new SpinButtonObj(spinButton, 592, 508, 100, 100, false)
   	rightSpin.draw();
@@ -189,19 +187,25 @@ function setUpSpinButton(){
   	leftSpin.draw();
 }
 
-var currentAngle = 1;
-var oldAngle = 0;
+var currentAngle = 720;
+var extraSpin = 160;
 
-var targetAngle = -100;
+var targetAngle = 0;
+
+var firstSpin, secondSpin = false;
 
 function rotateDial(target){
 
 	oldAngle = targetAngle;
 
-	targetAngle = -target;
+	targetAngle = target;
+
+	firstSpin = false;
+	secondSpin = false;
+
+    console.log("targetAngle: " + targetAngle);
 
 	spinAnim();
-
 }
 
 function spinAnim(){
@@ -214,12 +218,31 @@ function spinAnim(){
     	currentAngle -= 1;
 	}
 
+
+	if (currentAngle === targetAngle && !firstSpin && !secondSpin) {
+
+		firstSpin = true;
+		targetAngle -= extraSpin;
+	    console.log("targetAngle: " + targetAngle);
+	}
+
+	if (currentAngle === targetAngle && firstSpin && !secondSpin) {
+
+		secondSpin = true;
+		targetAngle += extraSpin/2;
+	    console.log("targetAngle: " + targetAngle);
+
+	}
+
     if (currentAngle !== targetAngle) {
      	requestAnimationFrame(spinAnim);
+    } else {
+    	setUpSpinButton();
+    	//setUpSpinButton();
+
     }
 
-    console.log("currentAngle: " + currentAngle);
-    console.log("targetAngle: " + targetAngle);
+    //console.log("currentAngle: " + currentAngle);
 }
 
 var TO_RADIANS = Math.PI / 180; 
@@ -248,6 +271,12 @@ function drawRotatedImage(image, x, y, angle) {
 	ctx.restore(); 
 }
 
+function spinRandomly(){
+	var newTarget = Math.random() * 360 + 1;;
+	console.log('newTarget');
+
+}
+
 var clickLoc = {
 	x: undefined,
 	y: undefined
@@ -271,13 +300,16 @@ window.addEventListener('mousedown',
 
 			if (clickLoc.y > spinBtnObj.y && clickLoc.y < spinBtnObj.y + spinButton.height){
 				console.log('spinBtnObj');
+				var randSpin = Math.floor(Math.random() * 540) + 360;
+				rotateDial(randSpin);
 			}
 		}
 
 		if (clickLoc.x > rightSpin.x && clickLoc.x < rightSpin.x + rightSpin.width) {
 
 			if (clickLoc.y > rightSpin.y  && clickLoc.y < rightSpin.y + rightSpin.height ) {
-				//console.log(spinBtnObj.y);
+				var ang = currentAngle += 40;
+				rotateDial(ang);
 				console.log('spinRight');
 			}
 		}
@@ -285,7 +317,8 @@ window.addEventListener('mousedown',
 		if (clickLoc.x > leftSpin.x && clickLoc.x < leftSpin.x + leftSpin.width) {
 
 			if (clickLoc.y > leftSpin.y  && clickLoc.y < leftSpin.y + leftSpin.height ) {
-				//console.log(spinBtnObj.y);
+				var ang = currentAngle -= 40;
+				rotateDial(ang);
 				console.log('spinLeft');
 			}
 		}
