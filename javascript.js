@@ -1,6 +1,35 @@
 var canvas = document.getElementById("background");
 var ctx = canvas.getContext("2d");
 
+var currentState = "setup"; //setup, ready, spinning, awarding,
+
+var clickLoc = {
+	x: undefined,
+	y: undefined
+}
+var scale = {
+	x: undefined,
+	y: undefined
+}
+
+var currentAngle = 720;
+var extraSpin = 160;
+var spinSpeed = 4;
+
+var targetAngle = 0;
+
+var firstSpin, secondSpin = false;
+
+var randomSafeNumber = 0;
+
+var finishedSpinning = false;
+
+var prizeOneSafe = 0;
+var prizeTwoSafe = 0;
+var prizeThreeSafe = 0;
+
+var bigWinAchieved = false;
+
 
 var bigBG = new Image();
 var smallSafe = new Image();
@@ -56,6 +85,8 @@ safeDialSupport.onload = () => {
 	spinButton.onload = () => {
 		setUpSpinButton();
 	}
+
+	currentState = 'ready';
 }
 
 //Small safe object
@@ -174,36 +205,22 @@ function setUpDial(dialIndex){
 	}
 }
 
-var rightSpin = undefined;
-var leftSpin = undefined;
-
 function setUpSpinButton(){
 	spinBtnObj = new SpinButtonObj(spinButton, 692, 358, spinButton.width, spinButton.height, false)
   	spinBtnObj.draw();
-
-	rightSpin = new SpinButtonObj(spinButton, 592, 508, 100, 100, false)
-  	rightSpin.draw();
-	leftSpin = new SpinButtonObj(spinButton, 792, 508, 100, 100, false)
-  	leftSpin.draw();
 }
-
-var currentAngle = 720;
-var extraSpin = 160;
-
-var targetAngle = 0;
-
-var firstSpin, secondSpin = false;
 
 function rotateDial(target){
 
-	oldAngle = targetAngle;
+	spinSpeed = 4;
 
 	targetAngle = target;
+	finalTargetAngle = target;
 
 	firstSpin = false;
 	secondSpin = false;
 
-    console.log("targetAngle: " + targetAngle);
+    //console.log("targetAngle: " + targetAngle);
 
 	spinAnim();
 }
@@ -213,36 +230,36 @@ function spinAnim(){
 			258 + (safeDialClear.height/2), currentAngle);
 
 	if (currentAngle < targetAngle) {
-    	currentAngle += 1;
+    	currentAngle += spinSpeed;
 	} else if (currentAngle > targetAngle) {
-    	currentAngle -= 1;
+    	currentAngle -= spinSpeed;
 	}
 
 
-	if (currentAngle === targetAngle && !firstSpin && !secondSpin) {
+	if (!firstSpin && !secondSpin && currentAngle === targetAngle) {
 
 		firstSpin = true;
 		targetAngle -= extraSpin;
-	    console.log("targetAngle: " + targetAngle);
-	}
-
-	if (currentAngle === targetAngle && firstSpin && !secondSpin) {
+	    spinSpeed = spinSpeed/2;
+	} else if (firstSpin && !secondSpin && currentAngle === targetAngle ) {
 
 		secondSpin = true;
 		targetAngle += extraSpin/2;
-	    console.log("targetAngle: " + targetAngle);
-
+	    spinSpeed = spinSpeed/2;
+	    targetAngle = finalTargetAngle;
 	}
 
     if (currentAngle !== targetAngle) {
      	requestAnimationFrame(spinAnim);
     } else {
+		console.log("final angle: " + currentAngle);
+		
+		cheeseIt(randomSafeNumber);
+
+		currentState = 'ready';
+
     	setUpSpinButton();
-    	//setUpSpinButton();
-
     }
-
-    //console.log("currentAngle: " + currentAngle);
 }
 
 var TO_RADIANS = Math.PI / 180; 
@@ -277,14 +294,6 @@ function spinRandomly(){
 
 }
 
-var clickLoc = {
-	x: undefined,
-	y: undefined
-}
-var scale = {
-	x: undefined,
-	y: undefined
-}
 window.addEventListener('mousedown', 
 	function(event) {//anonymous fucntion with even argument
 		//console.log(event);//See the values in the event
@@ -297,32 +306,106 @@ window.addEventListener('mousedown',
 	    clickLoc.y = (event.clientY - rect.top) * scale.y;    // been adjusted to be relative to element
 		
 		if (clickLoc.x > spinBtnObj.x && clickLoc.x < spinBtnObj.x + spinButton.width) {
-
 			if (clickLoc.y > spinBtnObj.y && clickLoc.y < spinBtnObj.y + spinButton.height){
 				console.log('spinBtnObj');
-				var randSpin = Math.floor(Math.random() * 540) + 360;
-				rotateDial(randSpin);
-			}
-		}
 
-		if (clickLoc.x > rightSpin.x && clickLoc.x < rightSpin.x + rightSpin.width) {
-
-			if (clickLoc.y > rightSpin.y  && clickLoc.y < rightSpin.y + rightSpin.height ) {
-				var ang = currentAngle += 40;
-				rotateDial(ang);
-				console.log('spinRight');
-			}
-		}
-
-		if (clickLoc.x > leftSpin.x && clickLoc.x < leftSpin.x + leftSpin.width) {
-
-			if (clickLoc.y > leftSpin.y  && clickLoc.y < leftSpin.y + leftSpin.height ) {
-				var ang = currentAngle -= 40;
-				rotateDial(ang);
-				console.log('spinLeft');
+				if (currentState == 'ready') {
+					currentState = 'spinning';
+					var randomNumber = Math.floor(Math.random() * 9) + 1 ;
+					console.log("randomNumber: " + randomNumber);
+					randomSafeNumber = randomNumber;
+					randomNumber = randomNumber * 40;
+					console.log("raised: " + randomNumber);
+					rotateDial(randomNumber);
+				}
 			}
 		}
 	});
+
+function cheeseIt(number){
+	randomSafeNumber = 0;
+	
+	switch(number) {
+	  case 1:
+	    randomSafeNumber = 1;
+	    break;
+	  case 2:
+	    randomSafeNumber = 9;
+	    break;
+	  case 3:
+	    randomSafeNumber = 8;
+	    break;
+	  case 4:
+	    randomSafeNumber = 7;
+	    break;
+	  case 5:
+	    randomSafeNumber = 6;
+	    break;
+	  case 6:
+	    randomSafeNumber = 5;
+	    break;
+	  case 7:
+	    randomSafeNumber = 4;
+	    break;
+	  case 8:
+	    randomSafeNumber = 3;
+	    break;
+	  case 9:
+	    randomSafeNumber = 2;
+	    break;
+	}
+	console.log("dial number: " + randomSafeNumber);
+
+}
+
+function finishedSpinning(number){
+
+var dialNumber = 0;
+	switch(number) {
+	  case 1:
+	    dialNumber = 1;
+	    break;
+	  case 2:
+	    dialNumber = 9;
+	    break;
+	  case 3:
+	    dialNumber = 8;
+	    break;
+	  case 4:
+	    dialNumber = 7;
+	    break;
+	  case 5:
+	    dialNumber = 6;
+	    break;
+	  case 6:
+	    dialNumber = 5;
+	    break;
+	  case 7:
+	    dialNumber = 4;
+	    break;
+	  case 8:
+	    dialNumber = 3;
+	    break;
+	  case 9:
+	    dialNumber = 2;
+	    break;
+	}
+	console.log("dial number: " + dialNumber);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
