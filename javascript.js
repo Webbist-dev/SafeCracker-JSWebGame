@@ -20,6 +20,8 @@ var targetAngle = 0;
 
 var firstSpin, secondSpin = false;
 
+var openSafes = [];
+var randomSafes = [];
 var randomSafeNumber = 0;
 
 var finishedSpinning = false;
@@ -130,6 +132,7 @@ function SpinButtonObj(image, x, y, width, height, hide) {
 var smallSafeArray = [];
 
 function SetUpSafeDoors(){
+	smallSafeArray = []
 	var x = 0;
 	var y = 40;
 	var safeCount = 0;
@@ -224,8 +227,22 @@ function rotateDial(target){
 
 	spinAnim();
 }
+function checkReset(){
+
+	if (openSafes.length == 3) {
+		console.log(" full reset time: ");
+		SetUpSafeDoors();
+	}
+
+	currentState = 'ready';
+
+    setUpSpinButton();
+
+}
 
 function spinAnim(){
+		currentState = 'spinning';
+
 		drawRotatedImage(safeDialClear, 592 + (safeDialClear.width/2), 
 			258 + (safeDialClear.height/2), currentAngle);
 
@@ -252,13 +269,15 @@ function spinAnim(){
     if (currentAngle !== targetAngle) {
      	requestAnimationFrame(spinAnim);
     } else {
+
 		console.log("final angle: " + currentAngle);
 		
-		cheeseIt(randomSafeNumber);
+		//getSafeNumber(randomSafeNumber);
 
-		currentState = 'ready';
+		openSafe(openSafes[openSafes.length -1]);
 
-    	setUpSpinButton();
+
+    	checkReset();
     }
 }
 
@@ -310,20 +329,53 @@ window.addEventListener('mousedown',
 				console.log('spinBtnObj');
 
 				if (currentState == 'ready') {
-					currentState = 'spinning';
-					var randomNumber = Math.floor(Math.random() * 9) + 1 ;
-					console.log("randomNumber: " + randomNumber);
-					randomSafeNumber = randomNumber;
-					randomNumber = randomNumber * 40;
-					console.log("raised: " + randomNumber);
-					rotateDial(randomNumber);
+
+					var spinToAngle = randomSafes[openSafes.length] * 40;
+					console.log("spinToAngle: " + spinToAngle);
+					openSafes.push(getSafeNumber(randomSafes[openSafes.length]));
+					rotateDial(spinToAngle);
 				}
 			}
 		}
 	});
 
-function cheeseIt(number){
-	randomSafeNumber = 0;
+preSelcetSafes();
+preSelcetPrizes();
+
+function preSelcetSafes(){
+	randomSafes =[];
+	openSafes =[];
+	for (var i = 0; i < 3; i++) {
+		var x = Math.floor(Math.random() * 9) + 1;
+			
+			var n = randomSafes.includes(x);
+		console.log("n: " + n);
+
+			if (!n) {
+				randomSafes.push(x);
+				console.log("added");
+			} else {
+				i -= 1;
+				console.log("Dupe");
+			}
+		}
+		console.log("randomSafes2: " + randomSafes);
+
+}
+var prizes = [];
+function preSelcetPrizes(){
+	prizes =[];
+	for (var i = 0; i < 3; i++) {
+		var x = Math.floor(Math.random() * 5) + 1;
+			
+			prizes.push(x);
+		}
+		
+		console.log("prizes: " + prizes);
+
+}
+function getSafeNumber(number){
+	// randomSafeNumber = 0;
 	
 	switch(number) {
 	  case 1:
@@ -354,47 +406,10 @@ function cheeseIt(number){
 	    randomSafeNumber = 2;
 	    break;
 	}
+
 	console.log("dial number: " + randomSafeNumber);
-
+	return randomSafeNumber;
 }
-
-function finishedSpinning(number){
-
-var dialNumber = 0;
-	switch(number) {
-	  case 1:
-	    dialNumber = 1;
-	    break;
-	  case 2:
-	    dialNumber = 9;
-	    break;
-	  case 3:
-	    dialNumber = 8;
-	    break;
-	  case 4:
-	    dialNumber = 7;
-	    break;
-	  case 5:
-	    dialNumber = 6;
-	    break;
-	  case 6:
-	    dialNumber = 5;
-	    break;
-	  case 7:
-	    dialNumber = 4;
-	    break;
-	  case 8:
-	    dialNumber = 3;
-	    break;
-	  case 9:
-	    dialNumber = 2;
-	    break;
-	}
-	console.log("dial number: " + dialNumber);
-
-}
-
-
 
 
 
