@@ -3,6 +3,14 @@ var ctx = canvas.getContext("2d");
 
 var currentState = "setup"; //setup, ready, spinning, awarding,
 
+var smallSafeArray = [];
+
+var firstSpin, secondSpin = false;
+
+var openSafes = [];
+var randomSafes = [];
+var randomSafeNumber = 0;
+
 var clickLoc = {
 	x: undefined,
 	y: undefined
@@ -18,20 +26,9 @@ var spinSpeed = 4;
 
 var targetAngle = 0;
 
-var firstSpin, secondSpin = false;
-
-var openSafes = [];
-var randomSafes = [];
-var randomSafeNumber = 0;
-
 var finishedSpinning = false;
 
-var prizeOneSafe = 0;
-var prizeTwoSafe = 0;
-var prizeThreeSafe = 0;
-
 var bigWinAchieved = false;
-
 
 var bigBG = new Image();
 var smallSafe = new Image();
@@ -45,7 +42,6 @@ var safeDialGreen = new Image();
 
 var spinButton = new Image();
 
-
 bigBG.src = "res/background_safe_minigame.png";
 smallSafe.src = "res/safe_minigame.png";
 smallSafeOpen.src = "res/safe_open_minigame.png";
@@ -57,38 +53,47 @@ safeDialRed.src = "res/safe_dial_red.png";
 safeDialGreen.src = "res/safe_dial_green.png";
 spinButton.src = "res/text_spin_safe_dial_minigame.png";
 
-bigBG.onload = () => {
-	//Resize canvas to fit background image
+var imagesArray = [
+	bigBG,	smallSafe,	smallSafeOpen,	smallSafeBG,	
+	safeDialSupport,	safeDialClear,	safeDialRed,
+	safeDialGreen,	spinButton
+];
+
+var imageCount = imagesArray.length;
+var imagesLoaded = 0;
+
+for(var i=0; i<imageCount; i++){
+    imagesArray[i].onload = function(){
+        imagesLoaded++;
+        if(imagesLoaded == imageCount){
+            allLoaded();
+            console.log("Loaded");
+        }
+    }
+}
+
+function allLoaded(){
+    //drawImages();
 	canvas.width = bigBG.width;
 	canvas.height = bigBG.height;	
-  	
-  	ctx.drawImage(bigBG, 0, 0);
-}
+  	drawBG();
 
-smallSafe.onload = () => {
 	SetUpSafeDoors();
-}
 
-smallSafeOpen.onload = () => {
-	//OpenSafeDoor(1);
-	//Doesn't need to be used ASAP after loading
-}
-var spinBtnObj = undefined;
-
-safeDialSupport.onload = () => {
 	setUpDialSupport();
-	//Load these after the support image
 
+	setUpDial();
 
-	safeDialClear.onload = () => {
-	setUpDial(0);
+	setUpSpinButton();
 
-	}
-	spinButton.onload = () => {
-		setUpSpinButton();
-	}
+	preSelcetSafes();
+	preSelcetPrizes();
 
 	currentState = 'ready';
+}
+
+function drawBG(){
+  	ctx.drawImage(bigBG, 0, 0);
 }
 
 //Small safe object
@@ -129,7 +134,6 @@ function SpinButtonObj(image, x, y, width, height, hide) {
 		}
 	}
 }
-var smallSafeArray = [];
 
 function SetUpSafeDoors(){
 	smallSafeArray = []
@@ -147,7 +151,6 @@ function SetUpSafeDoors(){
 			safeCount += 1;
 		}
 	}
-	console.log("safecount: " + safeCount);
 }
 
 function writeToTextSafe(value, xPos, yPos){
@@ -192,20 +195,7 @@ function DialObj(image, x, y, active) {
 }
 
 function setUpDial(dialIndex){
-
-	var offset = 0;
-
-	switch (dialIndex) {
-		case 0:
-  			ctx.drawImage(safeDialClear, 592, 258);
-		break;
-		case 1:
-  			ctx.drawImage(safeDialRed, 592, 258);
-		break;
-		case 2:
-  			ctx.drawImage(safeDialGreen, 592, 258);
-		break;
-	}
+  	ctx.drawImage(safeDialClear, 592, 258);
 }
 
 function setUpSpinButton(){
@@ -229,15 +219,29 @@ function rotateDial(target){
 }
 function checkReset(){
 
-	if (openSafes.length == 3) {
-		console.log(" full reset time: ");
-		SetUpSafeDoors();
+	if (currentState == "setup") {
+
+		preSelcetSafes();
+		preSelcetPrizes();
+
+		setTimeout(() => {  
+			console.log(" full reset time: ");
+			allLoaded();
+		}, 2000);
+
+	}
+	if (currentState == 'ready') {
+    	
+    	setUpSpinButton();
 	}
 
-	currentState = 'ready';
+	if (currentState == 'spinning') {
+    	
+	}
 
-    setUpSpinButton();
-
+	if (currentState == 'awarding') {
+    	
+	}
 }
 
 function spinAnim(){
@@ -270,20 +274,25 @@ function spinAnim(){
      	requestAnimationFrame(spinAnim);
     } else {
 
-		console.log("final angle: " + currentAngle);
-		
-		//getSafeNumber(randomSafeNumber);
-
 		openSafe(openSafes[openSafes.length -1]);
 
+		//Spinning state or ready state?
+		if (openSafes.length == 3) {
+			currentState = 'setup';
+			checkReset();
+		} else {
+		setTimeout(() => {  
+			console.log(" full reset time: ");
+			currentState = 'ready';
+			checkReset();
+		}, 1000);
 
-    	checkReset();
+		}
+
     }
 }
 
 var TO_RADIANS = Math.PI / 180; 
-console.log("animate TO_RADIANS: " + TO_RADIANS);
-
 function drawRotatedImage(image, x, y, angle) { 
  
 	// save the current co-ordinate system 
@@ -339,27 +348,25 @@ window.addEventListener('mousedown',
 		}
 	});
 
-preSelcetSafes();
-preSelcetPrizes();
-
 function preSelcetSafes(){
 	randomSafes =[];
 	openSafes =[];
 	for (var i = 0; i < 3; i++) {
+		//This value is random, 
 		var x = Math.floor(Math.random() * 9) + 1;
 			
 			var n = randomSafes.includes(x);
-		console.log("n: " + n);
+			//console.log("n: " + n);
 
 			if (!n) {
 				randomSafes.push(x);
-				console.log("added");
+				//console.log("added");
 			} else {
 				i -= 1;
-				console.log("Dupe");
+				//console.log("Dupe");
 			}
 		}
-		console.log("randomSafes2: " + randomSafes);
+		console.log("Random numbers: " + randomSafes);
 
 }
 var prizes = [];
@@ -371,11 +378,12 @@ function preSelcetPrizes(){
 			prizes.push(x);
 		}
 		
-		console.log("prizes: " + prizes);
+		console.log("Random Prizes: " + prizes);
 
 }
 function getSafeNumber(number){
-	// randomSafeNumber = 0;
+	//Because the 0 position of the dial is number 2,
+	//I am using the below offsets, to convert from the random number.
 	
 	switch(number) {
 	  case 1:
@@ -407,7 +415,7 @@ function getSafeNumber(number){
 	    break;
 	}
 
-	console.log("dial number: " + randomSafeNumber);
+	console.log("Next Dial: " + randomSafeNumber);
 	return randomSafeNumber;
 }
 
