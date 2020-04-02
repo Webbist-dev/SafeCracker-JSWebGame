@@ -40,6 +40,12 @@ var safeDialClear = new Image();
 var safeDialRed= new Image();
 var safeDialGreen = new Image();
 
+var coinsImage = new Image();
+var diamondsImage = new Image();
+var goldImage = new Image();
+var notesImage = new Image();
+var ringImage = new Image();
+
 var spinButton = new Image();
 
 bigBG.src = "res/background_safe_minigame.png";
@@ -53,10 +59,18 @@ safeDialRed.src = "res/safe_dial_red.png";
 safeDialGreen.src = "res/safe_dial_green.png";
 spinButton.src = "res/text_spin_safe_dial_minigame.png";
 
+coinsImage.src = "res/coins.png";
+goldImage.src = "res/gold.png";
+diamondsImage.src = "res/diamond.png";
+notesImage.src = "res/notes.png";
+ringImage.src = "res/ring.png";
+
+
 var imagesArray = [
 	bigBG,	smallSafe,	smallSafeOpen,	smallSafeBG,	
 	safeDialSupport,	safeDialClear,	safeDialRed,
-	safeDialGreen,	spinButton
+	safeDialGreen,	spinButton ,coinsImage, diamondsImage, 
+	goldImage, notesImage, ringImage
 ];
 
 var imageCount = imagesArray.length;
@@ -97,7 +111,9 @@ function drawBG(){
 }
 
 //Small safe object
-function SmallSafeObj(image, safeDoor, safeInternal,  prize, x, y, revealed) {
+function SmallSafeObj(arrPos, image, safeDoor, safeInternal,  prize, x, y, revealed) {
+	this.arrPos = arrPos;
+
 	this.image = image;
 	this.insideImg = safeDoor;
 	this.safeInternal = safeInternal;
@@ -108,15 +124,25 @@ function SmallSafeObj(image, safeDoor, safeInternal,  prize, x, y, revealed) {
 	
 	this.revealed = revealed;
 
+	var animTime = 0;
+	var scaleFactor = 0.1;
+	var scaleW = 200 * scaleFactor;
+	var scaleH = 164 * scaleFactor;
 	this.draw = function(){
   		ctx.drawImage(image, x, y);
 	}
 
 	this.revealInside = function(){
+		this.revealed = true;
   		ctx.drawImage(safeDoor, x - 40, y - 26);
   		ctx.drawImage(safeInternal, x + 25, y + 17, 112, 103);
+  		
+  		ctx.drawImage(this.prize,0,0, this.prize.width/2, this.prize.height, x - 30, y - 17,this.prize.width/2, this.prize.height);
+  		
+  		animTime = 0;
 
 	}
+
 }
 function SpinButtonObj(image, x, y, width, height, hide) {
 	this.image = image;
@@ -130,7 +156,7 @@ function SpinButtonObj(image, x, y, width, height, hide) {
 
 	this.draw = function(){
 		if (!this.hide) {
-	  		ctx.drawImage(image, x, y);
+	  		ctx.drawImage(this.image, x, y);
 		}
 	}
 }
@@ -144,7 +170,7 @@ function SetUpSafeDoors(){
 		x = 50;
 		y += 140;
 		for (var j = 0; j < 3; j++) {
-			smallSafeArray.push(new SmallSafeObj(smallSafe, smallSafeOpen, smallSafeBG, 0, x, y, false));
+			smallSafeArray.push(new SmallSafeObj(safeCount, smallSafe, smallSafeOpen, smallSafeBG, 0, x, y, false));
 			smallSafeArray[safeCount].draw();
 			writeToTextSafe(safeCount + 1, x + smallSafe.width/2, y + smallSafe.height/2);
 			x += 175;
@@ -187,11 +213,6 @@ function DialObj(image, x, y, active) {
   		ctx.drawImage(image, x, y);
 	}
 
-	this.revealInside = function(){
-  		ctx.drawImage(safeDoor, x - 40, y - 26);
-  		ctx.drawImage(safeInternal, x + 25, y + 17, 112, 103);
-
-	}
 }
 
 function setUpDial(dialIndex){
@@ -369,18 +390,38 @@ function preSelcetSafes(){
 		console.log("Random numbers: " + randomSafes);
 
 }
+
 var prizes = [];
 function preSelcetPrizes(){
-	prizes =[];
-	for (var i = 0; i < 3; i++) {
-		var x = Math.floor(Math.random() * 5) + 1;
-			
-			prizes.push(x);
-		}
-		
-		console.log("Random Prizes: " + prizes);
+	prizes = [];
+	// var prizeWeights = '11122233AB';
+	var prizeWeights = '112233AABB';
+	for (var i = 0; i < 9; i++) {
+    var x = prizeWeights[Math.floor(Math.random() * 10)];
+		prizes.push(x);
 
+		switch(x) {
+
+		  case '1':
+  			smallSafeArray[i].prize = coinsImage;
+		    break;
+		  case '2':
+  			smallSafeArray[i].prize = goldImage;
+		    break;
+		  case '3':
+  			smallSafeArray[i].prize = diamondsImage;
+		    break;
+		  case 'A':
+  			smallSafeArray[i].prize = notesImage;
+		    break;
+		  case 'B':
+  			smallSafeArray[i].prize = ringImage;
+		    break;
+		}
+	}
+	console.log("Random Prizes: " + prizes);
 }
+
 function getSafeNumber(number){
 	//Because the 0 position of the dial is number 2,
 	//I am using the below offsets, to convert from the random number.
