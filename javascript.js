@@ -1,5 +1,7 @@
 const canvas = document.getElementById('background');
 let ctx = canvas.getContext("2d");
+const ttcanvas = document.getElementById('topText');
+let ttctx = ttcanvas.getContext("2d");
 let currentState = "setup"; //setup, ready, spinning, awarding, tallying
 let smallSafeArray = [];
 let spinBtnObj;
@@ -71,6 +73,8 @@ function allLoaded() {
     //drawImages();
     canvas.width = bigBG.width;
     canvas.height = bigBG.height;
+    ttcanvas.width = bigBG.width;
+    ttcanvas.height = bigBG.height;
     drawBG();
     SetUpSafeDoors();
     setUpDialSupport();
@@ -79,12 +83,13 @@ function allLoaded() {
     preSelcetSafes();
     preSelcetPrizes();
     currentState = 'ready';
+    writeToTextBanner("PRESS SPIN TO PLAY!", canvas.width / 2, canvas.height / 10);
 }
 function drawBG() {
     ctx.drawImage(bigBG, 0, 0);
 }
 //Small safe object
-function SmallSafeObj(arrPos, image, safeDoor, safeInternal, prize, x, y, revealed) {
+function SmallSafeObj(arrPos, image, safeDoor, safeInternal, prize, multiplier, x, y, revealed) {
     this.arrPos = arrPos;
     this.img = image;
     this.insideImg = safeDoor;
@@ -105,6 +110,7 @@ function SmallSafeObj(arrPos, image, safeDoor, safeInternal, prize, x, y, reveal
         ctx.drawImage(safeDoor, x - 40, y - 26);
         ctx.drawImage(safeInternal, x + 25, y + 17, 112, 103);
         ctx.drawImage(this.prize, 0, 0, this.prize.width / 2, this.prize.height, x - 30, y - 17, this.prize.width / 2, this.prize.height);
+        writeToTextSafe("multiplier", "X" + this.multiplier, x + smallSafe.width / 2 - 10, y + smallSafe.height / 2 + 25);
         animTime = 0;
     };
 }
@@ -130,24 +136,48 @@ function SetUpSafeDoors() {
         x = 50;
         y += 140;
         for (let j = 0; j < 3; j++) {
-            smallSafeArray.push(new SmallSafeObj(safeCount, smallSafe, smallSafeOpen, smallSafeBG, 0, x, y, false));
+            smallSafeArray.push(new SmallSafeObj(safeCount, smallSafe, smallSafeOpen, smallSafeBG, 0, 0, x, y, false));
             smallSafeArray[safeCount].draw();
-            writeToTextSafe(safeCount + 1, x + smallSafe.width / 2, y + smallSafe.height / 2);
+            writeToTextSafe("door", safeCount + 1, x + smallSafe.width / 2, y + smallSafe.height / 2);
             x += 175;
             safeCount += 1;
         }
     }
 }
-function writeToTextSafe(value, xPos, yPos) {
-    ctx.font = '54px TitanOne';
-    ctx.fillStyle = 'white';
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = "center";
-    ctx.fillText(value, xPos + 8, yPos + 6);
+function writeToTextSafe(type, value, xPos, yPos) {
+    switch (type) {
+        case "door":
+            ctx.font = '54px TitanOne';
+            ctx.fillStyle = 'white';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = "center";
+            ctx.fillText(value, xPos + 8, yPos + 6);
+            break;
+        case "multiplier":
+            ctx.font = '60px TitanOne';
+            ctx.fillStyle = 'black';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = "center";
+            ctx.fillText(value, xPos + 8, yPos + 6);
+            ctx.font = '54px TitanOne';
+            ctx.fillStyle = 'white';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = "center";
+            ctx.fillText(value, xPos + 8, yPos + 6);
+            break;
+    }
+}
+function writeToTextBanner(value, xPos, yPos) {
+    ttctx.clearRect(0, 0, canvas.width, canvas.height / 6);
+    ttctx.font = '64px Dimbo';
+    ttctx.fillStyle = 'black';
+    ttctx.textBaseline = 'middle';
+    ttctx.textAlign = "center";
+    ttctx.fillText(value, xPos + 8, yPos + 16);
 }
 function openSafe(safeNumber) {
     smallSafeArray[safeNumber - 1].revealInside();
-    console.log('smallSafeArray[safeNumber-1]: ' + smallSafeArray[safeNumber - 1]);
+    writeToTextBanner("SAFE " + safeNumber, canvas.width / 2, canvas.height / 10);
 }
 //Move dials canvas to dials location
 function setUpDialSupport() {
@@ -321,13 +351,18 @@ function preSelcetSafes() {
     console.log("Random numbers: " + randomSafes);
 }
 let prizes = [];
+let multipliers = [];
 function preSelcetPrizes() {
     prizes = [];
+    multipliers = [];
     // let prizeWeights = '11122233AB';
     let prizeWeights = '112233AABB';
     for (let i = 0; i < 9; i++) {
         let x = prizeWeights[Math.floor(Math.random() * 10)];
+        let y = Math.floor(Math.random() * 11 + 10);
         prizes.push(x);
+        multipliers.push(y);
+        smallSafeArray[i].multiplier = y;
         switch (x) {
             case '1':
                 smallSafeArray[i].prize = coinsImage;
@@ -347,6 +382,7 @@ function preSelcetPrizes() {
         }
     }
     console.log("Random Prizes: " + prizes);
+    console.log("Random multipliers: " + multipliers);
 }
 function getSafeNumber(number) {
     //Because the 0 position of the dial is number 2,
