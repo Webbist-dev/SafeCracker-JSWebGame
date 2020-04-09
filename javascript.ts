@@ -1,7 +1,7 @@
 const canvas = <HTMLCanvasElement>document.getElementById('background');
 let ctx = canvas.getContext("2d");
 
-let currentState = "setup"; //setup, ready, spinning, awarding,
+let currentState = "setup"; //setup, ready, spinning, awarding, tallying
 
 let smallSafeArray = [];
 let spinBtnObj;
@@ -115,7 +115,7 @@ function drawBG(){
 function SmallSafeObj(arrPos, image, safeDoor, safeInternal,  prize, x, y, revealed) {
 	this.arrPos = arrPos;
 
-	this.image = image;
+	this.img = image;
 	this.insideImg = safeDoor;
 	this.safeInternal = safeInternal;
 	this.prize = prize;
@@ -130,7 +130,7 @@ function SmallSafeObj(arrPos, image, safeDoor, safeInternal,  prize, x, y, revea
 	let scaleW = 200 * scaleFactor;
 	let scaleH = 164 * scaleFactor;
 	this.draw = function(){
-  		ctx.drawImage(image, x, y);
+  		ctx.drawImage(this.img, x, y);
 	}
 
 	this.revealInside = function(){
@@ -189,7 +189,9 @@ function writeToTextSafe(value, xPos, yPos){
 }
 
 function openSafe(safeNumber){
-	smallSafeArray[safeNumber-1].revealInside();
+    smallSafeArray[safeNumber-1].revealInside();
+    console.log('smallSafeArray[safeNumber-1]: ' + smallSafeArray[safeNumber-1]);
+
 }
 //Move dials canvas to dials location
 
@@ -237,7 +239,7 @@ function rotateDial(target){
 
     //console.log("targetAngle: " + targetAngle);
 
-	spinAnim();
+	spinTheDial();
 }
 function checkReset(){
 
@@ -266,11 +268,13 @@ function checkReset(){
 	}
 }
 
-function spinAnim(){
-		currentState = 'spinning';
+function spinTheDial(){
+    //currentState = 'spinning';
+    //console.log('call spinning');
 
-		drawRotatedImage(safeDialClear, 592 + (safeDialClear.width/2), 
-			258 + (safeDialClear.height/2), currentAngle);
+    if (currentState == 'ready') {
+	    currentState = 'spinning';
+    }
 
 	if (currentAngle < targetAngle) {
     	currentAngle += spinSpeed;
@@ -293,10 +297,12 @@ function spinAnim(){
 	}
 
     if (currentAngle !== targetAngle) {
-     	requestAnimationFrame(spinAnim);
+         // requestAnimationFrame(spinTheDial);
+        requestAnimationFrame(drawAnimationsEtc);
     } else {
 
 		openSafe(openSafes[openSafes.length -1]);
+        console.log('openSafes[openSafes.length -1]: ' + openSafes[openSafes.length -1]);
 
 		//Spinning state or ready state?
 		if (openSafes.length == 3) {
@@ -342,6 +348,19 @@ function spinRandomly(){
 	let newTarget = Math.random() * 360 + 1;;
 	console.log('newTarget');
 
+}
+
+function drawAnimationsEtc(){
+
+    if (currentState == 'spinning') {
+        drawRotatedImage(safeDialClear, 592 + (safeDialClear.width/2), 
+        258 + (safeDialClear.height/2), currentAngle);
+        //console.log('draw spinning');
+        spinTheDial();
+    }
+    if (currentState == 'awarding') {
+
+    }
 }
 
 window.addEventListener('mousedown', 
