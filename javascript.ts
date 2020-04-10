@@ -6,10 +6,13 @@ let ttctx = ttcanvas.getContext("2d");
 let currentState = "setup"; //setup, ready, spinning, awarding, tallying
 let currentTopText = "PRESS SPIN TO PLAY!"
 
+let numberOfSafesToOpen = 4;
 let smallSafeArray = [];
 let spinBtnObj;
+let screenSafeObj;
 let firstSpin, secondSpin = false;
 
+let safeScreenNumbers = ["-","-","-","-"];
 let openSafes = [];
 let randomSafes = [];
 let randomSafeNumber = 0;
@@ -43,6 +46,12 @@ let safeDialSupport = new Image();
 let safeDialClear = new Image();
 let safeDialRed= new Image();
 let safeDialGreen = new Image();
+let spinButton = new Image();
+
+let screenSafeBG = new Image();
+let screenSafeRed = new Image();
+let screenSafeGreen = new Image();
+
 
 let coinsImage = new Image();
 let diamondsImage = new Image();
@@ -50,7 +59,6 @@ let goldImage = new Image();
 let notesImage = new Image();
 let ringImage = new Image();
 
-let spinButton = new Image();
 
 bigBG.src = "res/background_safe_minigame.png";
 smallSafe.src = "res/safe_minigame.png";
@@ -63,6 +71,10 @@ safeDialRed.src = "res/safe_dial_red.png";
 safeDialGreen.src = "res/safe_dial_green.png";
 spinButton.src = "res/text_spin_safe_dial_minigame.png";
 
+screenSafeBG.src = "res/screen_safe_background.png";
+screenSafeRed.src = "res/screen_safe_minigame.png";
+screenSafeGreen.src = "res/screen_safe_win.png";
+
 coinsImage.src = "res/coins.png";
 goldImage.src = "res/gold.png";
 diamondsImage.src = "res/diamond.png";
@@ -73,8 +85,9 @@ ringImage.src = "res/ring.png";
 let imagesArray = [
 	bigBG,	smallSafe,	smallSafeOpen,	smallSafeBG,	
 	safeDialSupport,	safeDialClear,	safeDialRed,
-	safeDialGreen,	spinButton ,coinsImage, diamondsImage, 
-	goldImage, notesImage, ringImage
+    safeDialGreen,	spinButton , screenSafeBG , 
+    screenSafeRed , screenSafeGreen ,coinsImage, 
+    diamondsImage, goldImage, notesImage, ringImage
 ];
 
 let imageCount = imagesArray.length;
@@ -94,9 +107,11 @@ function allLoaded(){
     //drawImages();
 	canvas.width = bigBG.width;
     canvas.height = bigBG.height;	
-    
+    console.log("w: " + canvas.width )
     ttcanvas.width = bigBG.width;
-	ttcanvas.height = bigBG.height;	
+    ttcanvas.height = bigBG.height;
+    console.log("ttw: " + ttcanvas.width )
+	
   	drawBG();
 
 	SetUpSafeDoors();
@@ -107,11 +122,15 @@ function allLoaded(){
 
 	setUpSpinButton();
 
+    setupSafeScreen();
+    writeToSafeScreen();
+
 	preSelcetSafes();
 	preSelcetPrizes();
 
     currentState = 'ready';
-    //wrapText(currentTopText, ttcanvas.width/10, ttcanvas.height/10, ttcanvas.width + 150);
+    console.log('BSBSBSBSBSBS');
+
     wrapText(currentTopText, ttcanvas.width/2, ttcanvas.height/10, ttcanvas.width + 200);
 
 }
@@ -171,7 +190,27 @@ function SpinButtonObj(image, x, y, width, height, hide) {
 		}
 	}
 }
+function ScreenSafeObj(bgImg, redImg, greenImg, x, y, width, height) {
+	this.bgImg = bgImg;
+	this.redImg = redImg;
+	this.greenImg = greenImg;
 
+	this.x = x;
+	this.y = y;
+	
+	this.width = width;
+	this.height = height;
+
+	this.drawBG = function(){
+	  	ctx.drawImage(this.bgImg, x, y);
+    }
+    this.drawRed = function(){
+        ctx.drawImage(this.redImg, x - 24, y);
+    }
+    this.drawGreen = function(){
+        ctx.drawImage(this.greenImg, x-2, y);
+    }
+}
 function SetUpSafeDoors(){
 	smallSafeArray = []
 	let x = 0;
@@ -214,7 +253,7 @@ function writeToTextSafe(type, value, xPos, yPos){
       }
 }
 function wrapText(text, x, y, maxWidth){
-    ttctx.clearRect(0,0, canvas.width, canvas.height/6);
+    ttctx.clearRect(0,0, canvas.width, canvas.height);
 
     var words = text.split(' ');
     var line = '';
@@ -230,47 +269,64 @@ function wrapText(text, x, y, maxWidth){
       var testWidth = metrics.width;
 
       if(testWidth > maxWidth) {
-        x = ttcanvas.width/2 - testWidth/3;
-        console.log("testWidth: " + testWidth);
+        //x = testWidth/2;
         
         ttctx.fillText(line, x, y);
         if(n<words.length-1){
             line = words[n] + ' ';
             y += lineHeight;
         }
-
+        
+        console.log("CUNT 1: " + canvas.width/2);
+        //ttctx.fillText(line, x, y);
       }
       else {
-        x = ttcanvas.width/2 - testWidth/3;
-        console.log("testWidth: " + testWidth);
+        //x = testWidth/2;
+        console.log("CUNT 2: " + canvas.width/2);
         line = testLine;
 
       }
     }
 
     ttctx.fillText(line, x, y);
-  }
+    writeToSafeScreen();
 
-function writeToTextBanner(valueOne, valueTwo, xPos, yPos){
+}
 
-            ttctx.clearRect(0,0, canvas.width, canvas.height/6);
-            ttctx.font = '54px Dimbo';
-            ttctx.fillStyle = 'black';
+function writeToSafeScreen(){
+            ttctx.font = '54px TitanOne';
+            ttctx.fillStyle = 'white';
             ttctx.textBaseline = 'middle';
             ttctx.textAlign = "center";
-            ttctx.fillText  (valueOne, xPos+8, yPos-8);
-        if (valueTwo != "") {
-            ttctx.fillText  (valueTwo, xPos+8, yPos+42);
-        }
+            for (let i = 0; i < safeScreenNumbers.length; i++) {
+                ttctx.fillText  (safeScreenNumbers[i], 640 + (i* 60), 224);
+            }
 }
 function openSafe(safeNumber){
     smallSafeArray[safeNumber-1].revealInside();
     //writeToTextBanner("SAFE " + safeNumber, "", canvas.width/2, canvas.height/10);
+
+    safeScreenNumbers[openSafes.length-1] = "" + safeNumber;
+
     currentTopText = "SAFE " + safeNumber;
     wrapText(currentTopText, ttcanvas.width/2, ttcanvas.height/10, ttcanvas.width + 200);
 
+    //writeToSafeScreen();
+
 }
 //Move dials canvas to dials location
+
+
+
+function setupSafeScreen(){
+
+    safeScreenNumbers = ["-","-","-","-"];
+
+    screenSafeObj = new ScreenSafeObj(screenSafeBG, screenSafeRed, screenSafeGreen, 600, 178, screenSafeBG.width, screenSafeBG.height)
+	screenSafeObj.drawBG();
+	screenSafeObj.drawRed();
+	//screenSafeObj.drawGreen();
+}
 
 function setUpDialSupport(){
 	ctx.drawImage(safeDialSupport, 580, 272);
@@ -292,7 +348,6 @@ function DialObj(image, x, y, active) {
 	this.draw = function(){
   		ctx.drawImage(image, x, y);
 	}
-
 }
 
 function setUpDial(){
@@ -385,7 +440,7 @@ function spinTheDial(){
         console.log('openSafes[openSafes.length -1]: ' + openSafes[openSafes.length -1]);
 
 		//Spinning state or ready state?
-		if (openSafes.length == 3) {
+		if (openSafes.length == numberOfSafesToOpen) {
 			currentState = 'setup';
 			checkReset();
 		} else {
@@ -472,7 +527,7 @@ window.addEventListener('mousedown',
 function preSelcetSafes(){
 	randomSafes =[];
 	openSafes =[];
-	for (let i = 0; i < 3; i++) {
+	for (let i = 0; i < numberOfSafesToOpen; i++) {
 		//This value is random, 
 		let x = Math.floor(Math.random() * 9) + 1;
 			
