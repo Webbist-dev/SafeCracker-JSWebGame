@@ -3,6 +3,7 @@ let ctx = canvas.getContext("2d");
 const ttcanvas = document.getElementById('topText');
 let ttctx = ttcanvas.getContext("2d");
 let currentState = "setup"; //setup, ready, spinning, awarding, tallying
+let currentTopText = "PRESS SPIN TO PLAY!";
 let smallSafeArray = [];
 let spinBtnObj;
 let firstSpin, secondSpin = false;
@@ -20,7 +21,7 @@ let scale = {
 let currentAngle = 720;
 let finalTargetAngle = 0;
 let extraSpin = 160;
-let spinSpeed = 4;
+let spinSpeed = 5;
 let targetAngle = 0;
 let finishedSpinning = false;
 let bigWinAchieved = false;
@@ -83,7 +84,8 @@ function allLoaded() {
     preSelcetSafes();
     preSelcetPrizes();
     currentState = 'ready';
-    writeToTextBanner("PRESS SPIN TO PLAY!", canvas.width / 2, canvas.height / 10);
+    //wrapText(currentTopText, ttcanvas.width/10, ttcanvas.height/10, ttcanvas.width + 150);
+    wrapText(currentTopText, ttcanvas.width / 2, ttcanvas.height / 10, ttcanvas.width + 200);
 }
 function drawBG() {
     ctx.drawImage(bigBG, 0, 0);
@@ -167,24 +169,58 @@ function writeToTextSafe(type, value, xPos, yPos) {
             break;
     }
 }
-function writeToTextBanner(value, xPos, yPos) {
+function wrapText(text, x, y, maxWidth) {
     ttctx.clearRect(0, 0, canvas.width, canvas.height / 6);
-    ttctx.font = '64px Dimbo';
+    var words = text.split(' ');
+    var line = '';
+    var lineHeight = 54; // a good approx for 10-18px sizes
+    ttctx.font = '54px Dimbo';
+    ttctx.textBaseline = 'middle';
+    ttctx.fillStyle = 'black';
+    for (var n = 0; n < words.length; n++) {
+        var testLine = line + words[n] + ' ';
+        var metrics = ctx.measureText(testLine);
+        var testWidth = metrics.width;
+        if (testWidth > maxWidth) {
+            x = ttcanvas.width / 2 - testWidth / 3;
+            console.log("testWidth: " + testWidth);
+            ttctx.fillText(line, x, y);
+            if (n < words.length - 1) {
+                line = words[n] + ' ';
+                y += lineHeight;
+            }
+        }
+        else {
+            x = ttcanvas.width / 2 - testWidth / 3;
+            console.log("testWidth: " + testWidth);
+            line = testLine;
+        }
+    }
+    ttctx.fillText(line, x, y);
+}
+function writeToTextBanner(valueOne, valueTwo, xPos, yPos) {
+    ttctx.clearRect(0, 0, canvas.width, canvas.height / 6);
+    ttctx.font = '54px Dimbo';
     ttctx.fillStyle = 'black';
     ttctx.textBaseline = 'middle';
     ttctx.textAlign = "center";
-    ttctx.fillText(value, xPos + 8, yPos + 16);
+    ttctx.fillText(valueOne, xPos + 8, yPos - 8);
+    if (valueTwo != "") {
+        ttctx.fillText(valueTwo, xPos + 8, yPos + 42);
+    }
 }
 function openSafe(safeNumber) {
     smallSafeArray[safeNumber - 1].revealInside();
-    writeToTextBanner("SAFE " + safeNumber, canvas.width / 2, canvas.height / 10);
+    //writeToTextBanner("SAFE " + safeNumber, "", canvas.width/2, canvas.height/10);
+    currentTopText = "SAFE " + safeNumber;
+    wrapText(currentTopText, ttcanvas.width / 2, ttcanvas.height / 10, ttcanvas.width + 200);
 }
 //Move dials canvas to dials location
 function setUpDialSupport() {
-    ctx.drawImage(safeDialSupport, 580, 222);
+    ctx.drawImage(safeDialSupport, 580, 272);
 }
 let safeDialX = 590;
-let safeDialY = 260;
+let safeDialY = 3100;
 let safeDialSize = 275;
 //Small safe object
 function DialObj(image, x, y, active) {
@@ -197,10 +233,10 @@ function DialObj(image, x, y, active) {
     };
 }
 function setUpDial() {
-    ctx.drawImage(safeDialClear, 592, 258);
+    ctx.drawImage(safeDialClear, 592, 308);
 }
 function setUpSpinButton() {
-    spinBtnObj = new SpinButtonObj(spinButton, 692, 358, spinButton.width, spinButton.height, false);
+    spinBtnObj = new SpinButtonObj(spinButton, 692, 408, spinButton.width, spinButton.height, false);
     spinBtnObj.draw();
 }
 function rotateDial(target) {
@@ -234,6 +270,8 @@ function spinTheDial() {
     //console.log('call spinning');
     if (currentState == 'ready') {
         currentState = 'spinning';
+        currentTopText = 'SPINNING';
+        wrapText(currentTopText, ttcanvas.width / 2, ttcanvas.height / 10, ttcanvas.width + 200);
     }
     if (currentAngle < targetAngle) {
         currentAngle += spinSpeed;
@@ -243,12 +281,12 @@ function spinTheDial() {
     }
     if (!firstSpin && !secondSpin && currentAngle === targetAngle) {
         firstSpin = true;
-        targetAngle -= extraSpin;
+        targetAngle += extraSpin;
         spinSpeed = spinSpeed / 2;
     }
     else if (firstSpin && !secondSpin && currentAngle === targetAngle) {
         secondSpin = true;
-        targetAngle += extraSpin / 2;
+        targetAngle -= extraSpin / 2;
         spinSpeed = spinSpeed / 2;
         targetAngle = finalTargetAngle;
     }
@@ -297,7 +335,7 @@ function spinRandomly() {
 }
 function drawAnimationsEtc() {
     if (currentState == 'spinning') {
-        drawRotatedImage(safeDialClear, 592 + (safeDialClear.width / 2), 258 + (safeDialClear.height / 2), currentAngle);
+        drawRotatedImage(safeDialClear, 592 + (safeDialClear.width / 2), 308 + (safeDialClear.height / 2), currentAngle);
         //console.log('draw spinning');
         spinTheDial();
     }

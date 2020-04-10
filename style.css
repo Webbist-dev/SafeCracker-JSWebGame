@@ -6,9 +6,9 @@
   font-family: 'TitanOne';
   src:  url('TitanOne-Regular.ttf') format('truetype'),
 }
-canvas {
-/*  border: 1px solid black;
-*/}
+/*canvas {
+  border: 1px solid black;
+}*/
 
 body {
   font-size: 100%;
