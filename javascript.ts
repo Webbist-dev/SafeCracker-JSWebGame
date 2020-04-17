@@ -294,13 +294,13 @@ function wrapText(text, x, y, maxWidth){
 }
 
 function writeToSafeScreen(){
-            ttctx.font = '54px TitanOne';
-            ttctx.fillStyle = 'white';
-            ttctx.textBaseline = 'middle';
-            ttctx.textAlign = "center";
-            for (let i = 0; i < safeScreenNumbers.length; i++) {
-                ttctx.fillText  (safeScreenNumbers[i], 640 + (i* 60), 224);
-            }
+	ttctx.font = '54px TitanOne';
+	ttctx.fillStyle = 'white';
+	ttctx.textBaseline = 'middle';
+	ttctx.textAlign = "center";
+	for (let i = 0; i < safeScreenNumbers.length; i++) {
+		ttctx.fillText  (safeScreenNumbers[i], 640 + (i* 60), 224);
+	}
 }
 function openSafe(safeNumber){
     smallSafeArray[safeNumber-1].revealInside();

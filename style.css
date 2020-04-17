@@ -1,15 +1,15 @@
 @font-face {
   font-family: 'Dimbo';
-  src:  url('Dimbo_Italic.ttf') format('truetype'),
+  src:  url('./fonts/Dimbo_Italic.ttf') format('truetype'),
 }
 @font-face {
   font-family: 'TitanOne';
-  src:  url('TitanOne-Regular.ttf') format('truetype'),
+  src:  url('./fonts/TitanOne-Regular.ttf') format('truetype'),
 }
 /*canvas {
   border: 1px solid black;
 }*/
-
+ 
 body {
   font-size: 100%;
   -webkit-touch-callout: none;
