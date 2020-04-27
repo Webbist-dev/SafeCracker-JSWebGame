@@ -6,10 +6,7 @@
   font-family: 'TitanOne';
   src:  url('./fonts/TitanOne-Regular.ttf') format('truetype'),
 }
-/*canvas {
-  border: 1px solid black;
-}*/
- 
+
 body {
   font-size: 100%;
   -webkit-touch-callout: none;
@@ -59,14 +56,3 @@ div{
   left: 0;
   z-index: 3;
 }
-
-/*#safeArea {
-  width: auto;
-  height: auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  border: 1px solid black;
-
-}*/
