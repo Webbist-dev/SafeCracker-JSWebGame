@@ -355,7 +355,7 @@ function checkReset() {
 function openSafe(safeNumber) {
     //Opens safe at the desired index value
     //Calls the function in the object which will draw the images
-    smallSafeArray[safeNumber].revealInside();
+    smallSafeArray[safeNumber-1].revealInside();
     //Change the text in the safe screen numbers array to the currently opened safe
     safeScreenNumbers[openSafes.length - 1] = "" + safeNumber;
     //Change the current top text to update the newly opened safe
@@ -383,6 +383,7 @@ function spinTheDial() {
             //Decrease the current angle by the speed
             currentAngle -= spinSpeed;
         }
+    }
         //If the the first and second spin haven't been reached
         //And the current angle has now reached the target
         if (!firstSpin && !secondSpin && currentAngle === targetAngle) {
@@ -398,51 +399,49 @@ function spinTheDial() {
             spinSpeed = spinSpeed / 2; //Lower the spin speed
             targetAngle = finalTargetAngle; //Set the target angle to the final angle
         }
-        //If target angle has not been reached, call for the canvas animation frame
-        if (currentAngle !== targetAngle) {
-            requestAnimationFrame(drawAnimationsEtc);
-        }
-        else {
-            //When the current angle is the target angle
-            //Open the safe at the last open safe index
-            openSafe(openSafes[openSafes.length - 1]);
-            console.log('openSafe: ' + openSafes[openSafes.length - 1]);
-            //Spinning state or ready state?
-            //If the number of open safes matches the number Of Safes To Open
-            if (openSafes.length == numberOfSafesToOpen) {
-                //Set the state to setup
-                //currentState = 'setup';
 
-                for (var i = 0; i < openSafes.length; i++) {
-                    console.log("i " + i);
+    //If target angle has not been reached, call for the canvas animation frame
+    if (currentAngle !== targetAngle) {
+        requestAnimationFrame(drawAnimationsEtc);
+    }
+    else {
+        //When the current angle is the target angle
+        //Open the safe at the last open safe index
+        openSafe(openSafes[openSafes.length - 1]);
+        console.log('openSafe: ' + openSafes[openSafes.length - 1]);
+        //Spinning state or ready state?
+        //If the number of open safes matches the number Of Safes To Open
+        if (openSafes.length == numberOfSafesToOpen) {
+            //Set the state to setup
+            //currentState = 'setup';
 
-                    for (var j = i + 1; j < openSafes.length; j++) {
-                        console.log("j " + j);
+            for (var i = 0; i <= openSafes.length - 1; i++) {
+                console.log("i " + i);
 
-                        if (numberOfMatchingSafes < numberOfSafesToOpen && smallSafeArray[openSafes[i]].prizeValue == smallSafeArray[openSafes[j]].prizeValue) {
-                            console.log("Comparing: openSafe " + i + " with prize value: " + smallSafeArray[openSafes[i]].prizeValue + " to " + "openSafe " + j + " with prize value: " + smallSafeArray[openSafes[j]].prizeValue);
-                            numberOfMatchingSafes++;
-                            console.log("Matching Prizes Found: " + numberOfMatchingSafes);
-						}
-					}
+                for (var j = i + 1; j <= openSafes.length - 1; j++) {
+                    console.log("j " + j);
+
+                    if (numberOfMatchingSafes < numberOfSafesToOpen && smallSafeArray[openSafes[i]].prizeValue == smallSafeArray[openSafes[j] - 1].prizeValue) {
+                        console.log("Comparing: openSafe " + i + " with prize value: " + smallSafeArray[openSafes[i]].prizeValue + " to " + "openSafe " + j + " with prize value: " + smallSafeArray[openSafes[j] - 1].prizeValue);
+                        numberOfMatchingSafes++;
+                        console.log("Matching Prizes Found: " + numberOfMatchingSafes);
+                    }
                 }
+            }
 
-                if (numberOfMatchingSafes >= 3) {
-                    currentState = 'awarding';
-                } else {
-                    currentState = 'setup';
-                }
 
-                //
+            if (numberOfMatchingSafes >= 3) {
+                currentState = 'awarding';
+            } else {
+                currentState = 'setup';
+            }
+            checkReset();
+        } else {
+            //Wait some seconds before checking reset
+            setTimeout(() => {
+                currentState = 'ready';
                 checkReset();
-            }
-            else {
-                //Wait some seconds before checking reset
-                setTimeout(() => {
-                    currentState = 'ready';
-                    checkReset();
-                }, timeToWaitBeforeReset);
-            }
+            }, timeToWaitBeforeReset);
         }
     }
 }
