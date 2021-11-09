@@ -7,7 +7,10 @@ let ttctx = ttcanvas.getContext("2d");
 //For storing reference to current state
 let currentState = "setup"; //setup, ready, spinning, awarding, tallying
 //The text to show when the game is ready to play
-let currentTopText = "Match a pair of symbols for a safe busting multiplier! TOUCH THE DIAL TO SPIN YOUR 4 DIGIT COMBINATION";
+let currentTopText = "";
+let startText = "Match 3 symbols to win! CLICK THE DIAL TO SPIN YOUR 4 DIGIT COMBINATION";
+let resetText = "Please wait while next round is being setup, thank you :)";
+let awardText = "Congratulations! You won a prize! :D";
 let numberOfSafesToOpen = 4; //How many safes the player can open
 let smallSafeArray = []; //The array of all safe objects
 let spinBtnObj; //Spin button object
@@ -18,6 +21,12 @@ let multipliers = []; //Array for random multipliers to be stored
 let safeScreenNumbers = ["-", "-", "-", "-"]; //Text to display on screenSafeObj
 let openSafes = []; //Array to store which safes have been opened
 let randomSafes = []; //Array of random safes that the player can open
+let timeToWaitBeforeReset = 3000;//Time to wait before resetting the game
+let numberOfMatchingSafes = 0;
+//The weight of the prizes can be set here to increase or decrease
+//the probability of a certain prize being selected
+let prizeWeights = '11111123AB';
+
 let clickLoc = {
     x: undefined,
     y: undefined
@@ -85,7 +94,9 @@ for (let i = 0; i < imageCount; i++) {
         imagesLoaded++;
         if (imagesLoaded == imageCount) {
             allLoaded();
-            console.log("Loaded");
+            console.log("Images Loaded");
+        } else {
+            console.log("Still Loading Images");
         }
     };
 }
@@ -110,6 +121,7 @@ function allLoaded() {
     preSelcetSafes();
     preSelcetPrizes();
     currentState = 'ready';
+    currentTopText = startText;
     wrapText(currentTopText);
     console.log('All loaded run');
 }
@@ -117,17 +129,34 @@ function allLoaded() {
 function drawBG() {
     ctx.drawImage(bigBG, 0, 0);
 }
-//Draw the dial bg
-function setUpDialSupport() {
-    ctx.drawImage(safeDialSupport, 580, 272);
+
+function SetUpSafeDoors() {
+    smallSafeArray = [];
+    let x = 0;
+    let y = 40;
+    let safeCount = 0;
+    //Nested for loop to create the 9 safes at regular intervals
+    for (let i = 0; i < 3; i++) {
+        x = 50;
+        y += 140;
+        for (let j = 0; j < 3; j++) {
+            //Create safe objects and save them in the small safe array
+            smallSafeArray.push(new SmallSafeObj(safeCount, smallSafe, smallSafeOpen, smallSafeBG, 0, 0, x, y, false));
+            smallSafeArray[safeCount].draw();
+            writeToTextSafe("door", safeCount + 1, x + smallSafe.width / 2, y + smallSafe.height / 2);
+            x += 175;
+            safeCount += 1;
+        }
+    }
 }
 //Small safe object
-function SmallSafeObj(arrPos, image, safeDoor, safeInternal, prize, multiplier, x, y, revealed) {
+function SmallSafeObj(arrPos, image, safeDoor, safeInternal, prize, prizeValue, x, y, revealed) {
     this.arrPos = arrPos;
     this.img = image;
     this.insideImg = safeDoor;
     this.safeInternal = safeInternal;
     this.prize = prize;
+    this.prizeValue = prizeValue;
     this.x = x;
     this.y = y;
     this.revealed = revealed;
@@ -145,6 +174,12 @@ function SmallSafeObj(arrPos, image, safeDoor, safeInternal, prize, multiplier, 
         writeToTextSafe("multiplier", "X" + this.multiplier, x + smallSafe.width / 2 - 10, y + smallSafe.height / 2 + 25);
     };
 }
+
+//Draw the dial bg
+function setUpDialSupport() {
+    ctx.drawImage(safeDialSupport, 580, 272);
+}
+
 function SpinButtonObj(image, x, y, width, height, hide) {
     this.image = image;
     this.x = x;
@@ -177,25 +212,7 @@ function ScreenSafeObj(bgImg, redImg, greenImg, x, y, width, height) {
         ctx.drawImage(this.greenImg, x - 2, y);
     };
 }
-function SetUpSafeDoors() {
-    smallSafeArray = [];
-    let x = 0;
-    let y = 40;
-    let safeCount = 0;
-    //Nested for loop to create the 9 safes at regular intervals
-    for (let i = 0; i < 3; i++) {
-        x = 50;
-        y += 140;
-        for (let j = 0; j < 3; j++) {
-            //Create safe objects and save them in the small safe array
-            smallSafeArray.push(new SmallSafeObj(safeCount, smallSafe, smallSafeOpen, smallSafeBG, 0, 0, x, y, false));
-            smallSafeArray[safeCount].draw();
-            writeToTextSafe("door", safeCount + 1, x + smallSafe.width / 2, y + smallSafe.height / 2);
-            x += 175;
-            safeCount += 1;
-        }
-    }
-}
+
 function writeToTextSafe(type, value, xPos, yPos) {
     //This text is written to the game canvas as it does not need to updated
     //while the game is running, only when the safe is opened
@@ -227,11 +244,11 @@ function wrapText(text) {
     //Set the starting point from which to position the text
     var x = ttcanvas.width / 2;
     var y = ttcanvas.height / 10;
-    var maxWidth = 1300; //Max width of the area the text can cover
+    var maxWidth = 1200; //Max width of the area the text can cover
     var words = text.split(' '); //Separate the words of the text in to an array
     var line = ''; //A blank string to add text too
-    var lineHeight = 44;
-    ttctx.font = '44px Dimbo';
+    var lineHeight = 40;
+    ttctx.font = '30px Dimbo';
     ttctx.textBaseline = 'middle';
     ttctx.fillStyle = 'black';
     //Start to add words to test line, check the length of the string
@@ -240,7 +257,7 @@ function wrapText(text) {
         var metrics = ctx.measureText(testLine);
         var testWidth = metrics.width;
         //If the string is getting too long
-        if (testWidth > 1300) {
+        if (testWidth > maxWidth) {
             //Print the current string
             ttctx.fillText(line, x, y);
             //Drop down by one lineheight if there are more words to write
@@ -296,47 +313,55 @@ function setUpSpinButton() {
     spinBtnObj = new SpinButtonObj(spinButton, 692, 408, spinButton.width, spinButton.height, false);
     spinBtnObj.draw();
 }
-function rotateDial(target) {
-    spinSpeed = 4;
-    targetAngle = target;
-    finalTargetAngle = target;
-    firstSpin = false;
-    secondSpin = false;
-    //console.log("targetAngle: " + targetAngle);
-    spinTheDial();
-}
+
 //Checks the current state and does some house keeping
 function checkReset() {
     if (currentState == "setup") {
+
+        currentTopText = resetText;
+        wrapText(currentTopText);
+
+        numberOfMatchingSafes = 0;
+
         preSelcetSafes();
         preSelcetPrizes();
-        //Wait two seconds before resetting so player can see the result
+        //Wait some seconds before resetting so player can see the result
         setTimeout(() => {
-            console.log(" full reset time: ");
             allLoaded();
-        }, 2000);
+        }, timeToWaitBeforeReset);
     }
-    if (currentState == 'ready') {
+    else if (currentState == 'ready') {
         setUpSpinButton();
     }
-    if (currentState == 'spinning') {
+    else if (currentState == 'spinning') {
     }
-    if (currentState == 'awarding') {
+    else if (currentState == 'awarding') {
+        //Do something to indicate any prizes won
+
+        console.log("DO SOME AWARDING THING");
+        screenSafeObj.drawGreen();
+
+        currentTopText = awardText;
+        wrapText(currentTopText);
+
+        //Wait some seconds before checking reset
+        setTimeout(() => {
+            currentState = 'setup';
+            checkReset();
+        }, timeToWaitBeforeReset);
     }
 }
 //Open safe function
 function openSafe(safeNumber) {
     //Opens safe at the desired index value
     //Calls the function in the object which will draw the images
-    smallSafeArray[safeNumber - 1].revealInside();
+    smallSafeArray[safeNumber].revealInside();
     //Change the text in the safe screen numbers array to the currently opened safe
     safeScreenNumbers[openSafes.length - 1] = "" + safeNumber;
     //Change the current top text to update the newly opened safe
     currentTopText = "SAFE " + safeNumber;
     //Call the function to display the new text
     wrapText(currentTopText);
-    //THis is now handled in the wraptext function
-    //writeToSafeScreen();
 }
 function spinTheDial() {
     //Check if the game is okay to start spinning
@@ -364,9 +389,9 @@ function spinTheDial() {
             firstSpin = true; //First spin completed
             targetAngle += extraSpin; //Increase the target angle by the extra spin amount
             spinSpeed = spinSpeed / 2; //Lower the spin speed
-            //If the first spin is complete and second spin haven't been reached
-            //And the current angle has now reached the target
         }
+        //If the first spin is complete and second spin haven't been reached
+        //And the current angle has now reached the target
         else if (firstSpin && !secondSpin && currentAngle === targetAngle) {
             secondSpin = true; //Second spin completed
             targetAngle -= extraSpin / 2; //Decrease the target angle by the extra spin amount
@@ -386,17 +411,37 @@ function spinTheDial() {
             //If the number of open safes matches the number Of Safes To Open
             if (openSafes.length == numberOfSafesToOpen) {
                 //Set the state to setup
-                currentState = 'setup';
+                //currentState = 'setup';
+
+                for (var i = 0; i < openSafes.length; i++) {
+                    console.log("i " + i);
+
+                    for (var j = i + 1; j < openSafes.length; j++) {
+                        console.log("j " + j);
+
+                        if (numberOfMatchingSafes < numberOfSafesToOpen && smallSafeArray[openSafes[i]].prizeValue == smallSafeArray[openSafes[j]].prizeValue) {
+                            console.log("Comparing: openSafe " + i + " with prize value: " + smallSafeArray[openSafes[i]].prizeValue + " to " + "openSafe " + j + " with prize value: " + smallSafeArray[openSafes[j]].prizeValue);
+                            numberOfMatchingSafes++;
+                            console.log("Matching Prizes Found: " + numberOfMatchingSafes);
+						}
+					}
+                }
+
+                if (numberOfMatchingSafes >= 3) {
+                    currentState = 'awarding';
+                } else {
+                    currentState = 'setup';
+                }
+
                 //
                 checkReset();
             }
             else {
-                //Wait a second before checking reset
+                //Wait some seconds before checking reset
                 setTimeout(() => {
-                    console.log(" full reset time: ");
                     currentState = 'ready';
                     checkReset();
-                }, 1000);
+                }, timeToWaitBeforeReset);
             }
         }
     }
@@ -408,14 +453,13 @@ function drawRotatedImage(image, x, y, angle) {
     ctx.save();
     // move to the middle of where we want to draw our image
     ctx.translate(x, y);
-    // rotate around that point, converting our 
-    // angle from degrees to radians 
+    // rotate around that point, converting angle from degrees to radians 
     ctx.rotate((Math.PI / 180) * angle);
     // draw it up and to the left by half the width
     // and height of the image 
     // ctx.drawImage(image, -(image.width/2), -(image.height/2));
     ctx.drawImage(image, -(image.width / 2), -(image.height / 2));
-    // and restore the co-ords to how they were when we began
+    // and restore the co-ords to how they were
     ctx.restore();
 }
 function drawAnimationsEtc() {
@@ -426,6 +470,7 @@ function drawAnimationsEtc() {
         spinTheDial();
     }
     if (currentState == 'awarding') {
+        //Display some animations to award prize
     }
 }
 window.addEventListener('mousedown', function (event) {
@@ -453,6 +498,15 @@ window.addEventListener('mousedown', function (event) {
         }
     }
 });
+function rotateDial(target) {
+    spinSpeed = 4;
+    targetAngle = target;
+    finalTargetAngle = target;
+    firstSpin = false;
+    secondSpin = false;
+    //console.log("targetAngle: " + targetAngle);
+    spinTheDial();
+}
 function preSelcetSafes() {
     randomSafes = []; //Reset the array
     openSafes = []; //Reset the array
@@ -460,9 +514,7 @@ function preSelcetSafes() {
         //This value is random, 
         let x = Math.floor(Math.random() * 9) + 1;
         let anyDuplicate = false;
-        //Was the intended method, however typescript won't compile with it
-        //I edited the tsconfig to include es7 but it still didn't work
-        //let anyDuplicates = randomSafes.includes(x);
+
         //Check if random safe already selected
         for (let j = 0; j < i; j++) {
             if (randomSafes[j] == x) {
@@ -484,11 +536,8 @@ function preSelcetSafes() {
 function preSelcetPrizes() {
     prizes = []; //Reset the array
     multipliers = []; //Reset the array
-    //The weight of the prizes can be set here to increase or decrease
-    //the probability of a certain prize being selected
-    // let prizeWeights = '11122233AB';
-    let prizeWeights = '112233AABB';
-    //For each chosen safe prize, 
+
+    //For each chosen safe prize,
     for (let i = 0; i < 9; i++) {
         //Choose a random prize from the weights
         let x = prizeWeights[Math.floor(Math.random() * 10)];
@@ -496,6 +545,7 @@ function preSelcetPrizes() {
         let y = Math.floor(Math.random() * 11 + 10);
         //Add prize to the prizes array
         prizes.push(x);
+
         //Add multipliers to the multipliers array
         multipliers.push(y);
         //Assign multiplier to safe
@@ -503,6 +553,7 @@ function preSelcetPrizes() {
         //Assign prize to safe, depending on the value
         switch (x) {
             case '1':
+                smallSafeArray[i].prize = coinsImage;
                 smallSafeArray[i].prize = coinsImage;
                 break;
             case '2':
@@ -521,6 +572,10 @@ function preSelcetPrizes() {
     }
     console.log("Random Prizes: " + prizes);
     console.log("Random multipliers: " + multipliers);
+
+    for (var i = 0; i < smallSafeArray.length; i++) {
+        smallSafeArray[i].prizeValue = prizes[i];
+    }
 }
 function getSafeNumber(number) {
     //Because the 0 position of the dial is number 2,
@@ -560,4 +615,3 @@ function getSafeNumber(number) {
     console.log("Next Dial: " + randomSafeNumber);
     return randomSafeNumber;
 }
-//# sourceMappingURL=javascript.js.map
